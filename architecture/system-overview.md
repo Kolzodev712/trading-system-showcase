@@ -63,3 +63,9 @@ On startup, and later on a timer, the runner compares its trading state with the
 ## Operator control
 
 Pause, cancel working orders, flatten, and resume are gRPC calls. They do not travel on the market-data channel. Disabling entries is distinct from cancelling working orders. On a non-paper venue those mutating calls require an operator token at the proxy. The paper demonstration does not use a real venue, so it does not use that token.
+
+## Per-system detail
+
+- [Trading runner](trading-runner.md)
+- [Paper exchange](paper-exchange.md)
+- [Trading system UI](trading-system-ui.md)

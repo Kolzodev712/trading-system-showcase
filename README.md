@@ -81,66 +81,105 @@ Startup and a later timer compare the two states. Restarting the paper process d
 
 ## The three systems
 
-Each repository is a separate process boundary. The charts below are the internals of those three systems. The laboratory starts the levels path of the runner, the spot paper server, and the browser. Other exchange clients, the on-chain mode, and the linear paper fixture exist in the code and are drawn as present but not started.
+Each repository is its own process boundary. The charts below are the internals. The laboratory starts the levels path of the runner, the spot paper server, and the browser. Other exchange clients, DEX mode, and the linear paper fixture exist in the code and are drawn as present but not started. Dedicated pages: [trading runner](architecture/trading-runner.md), [paper exchange](architecture/paper-exchange.md), [trading system UI](architecture/trading-system-ui.md).
 
 ### Trading runner
 
-One Rust process. Market data, indicators, the exchange session, and level execution share that process and meet on in-process channels. Operator commands enter through gRPC and do not travel on the market-data channel.
+One Rust process. Live engines share that process and meet on in-process channels. Operator commands enter through gRPC and do not travel on the market-data channel.
 
 ```mermaid
 flowchart TB
-  subgraph edge [Operator edge]
-    grpc[gRPC TradingCliService]
-    health[HTTP health, state, and metrics]
-    control[Trading control]
+  subgraph edge [Operator and health edge]
+    gateway[gateway: TradingCliService]
+    pause[PauseEntries / CancelWorking / FlattenAndPause / Resume]
+    levelsrpc[Level CRUD and ToggleLevel]
+    mon[GetMonitoringData and StreamMonitoringData]
+    status[GetTradingStatus / SetTradingEnabled]
+    health[HTTP /health /state /orders /metrics]
   end
 
-  subgraph market [Market-data engine]
-    mdclient[Venue market client]
-    mdstate[Book and trade cache]
+  subgraph runner [runner orchestrator]
+    launch[CLI: mode, bot, levels]
+    init[Mongo, assets, engines]
+    control[TradingControl]
+    live[Live config service]
   end
 
-  subgraph indicators [Indicator engine]
-    subscriber[Trade subscriber]
-    calculator[SMA and EMA calculator]
-    bindings[Level price bindings]
+  subgraph md [market_data_engine]
+    mdadapter[Venue market client]
+    mdcache[Orderbook and trade cache]
+    mdchan[Broadcast to subscribers]
   end
 
-  subgraph exchange [Exchange engine]
-    client[Venue trade client]
-    exstate[Exchange state]
+  subgraph ind [indicator_engine]
+    indsub[Trade subscriber]
+    calc[SMA / EMA calculator]
+    bind[Level price bindings]
+  end
+
+  subgraph ex [exchange_engine]
+    tradeclient[Venue trade client]
+    driv[Session driver and reconnect]
+    exstate[ExchangeStateManager]
     exrecon[WS versus REST reconciler]
   end
 
-  subgraph trading [Trading engine]
-    levels[Levels event loop]
-    risk[Risk manager]
-    tstate[Trading state]
-    trecon[Trading-state reconciler]
-    journal[Submission journal and execution ledger]
+  subgraph te [trading_engine]
+    loop[Levels event loop]
+    risk[Risk manager and circuit breaker]
+    tstate[TradingState]
+    trecon[Trading reconciler]
+    journal[Submission journal]
+    ledger[Execution ledger]
   end
 
-  assets[Asset engine: instrument rules]
-  mongo[(MongoDB configuration)]
-  other[Other venue clients and DEX mode, not started in the laboratory]
+  assets[asset_engine: tick, lot, min notional]
+  mongo[(MongoDB)]
+  paper[Paper venue]
+  others[Binance / Bybit / DeepBook clients, not started in the laboratory]
 
-  mdclient --> mdstate
-  mdstate --> subscriber
-  mdstate --> levels
-  subscriber --> calculator --> bindings --> levels
-  levels --> risk --> client
-  client --> exstate
+  launch --> init --> control
+  init --> md
+  init --> ind
+  init --> ex
+  init --> te
+  init --> assets
+  init --> live
+  init --> gateway
+  init --> health
+
+  gateway --> pause
+  gateway --> levelsrpc
+  gateway --> mon
+  gateway --> status
+  pause --> control
+  status --> control
+  control --> loop
+  levelsrpc --> loop
+  live --> mongo
+  bind --> mongo
+
+  mdadapter --> mdcache --> mdchan
+  mdchan --> indsub
+  mdchan --> loop
+  indsub --> calc --> bind --> loop
+
+  loop --> risk
+  risk --> assets
+  risk --> tradeclient
+  tradeclient --> driv --> exstate
   exstate --> exrecon
   exstate --> trecon --> tstate
-  tstate --> levels
-  assets --> risk
-  assets --> levels
-  grpc --> control --> levels
-  levels --> journal
-  mongo --> levels
-  mongo --> bindings
-  client -.-> other
+  tstate --> loop
+  loop --> journal
+  loop --> ledger
+
+  mdadapter --> paper
+  tradeclient --> paper
+  tradeclient -.-> others
 ```
+
+![Trading runner](architecture/trading-runner.svg)
 
 The paper trade client sends each command on one socket and reads the reply on that same socket. It keeps a single in-flight place, cancel, and amend. A missing acknowledgement is looked up by client id instead of placing a second order. Trading starts disabled until an operator enables it. Risk runs before that place call. The asset engine supplies tick size, lot size, and minimum notional from the venue.
 
@@ -150,46 +189,59 @@ A separate process. The core has no sockets. The server owns HTTP, WebSocket, th
 
 ```mermaid
 flowchart TB
-  subgraph server [Paper server]
-    runtime[Startup config and profile]
+  subgraph clients [Clients]
+    tradeWS["/ws/trade"]
+    marketWS["/ws/market"]
+    restHTTP[REST]
+  end
+
+  subgraph server [paper-exchange-server]
+    runtime[Runtime: profile, port, config]
     market[Synthetic market engine]
-    scenario[Optional timed scenario overlay]
+    overlay[Timed scenario overlay]
+    static[Static scenario JSON]
     transport[WebSocket transport]
     session[Session and command loop]
-    rest[REST snapshots and laboratory hooks]
+    rest[REST handlers]
+    lab[Laboratory hooks]
   end
 
-  subgraph core [Paper core, no network I/O]
-    facade[Exchange facade]
-    book[Order book]
+  subgraph core [paper-exchange-core]
+    facade[PaperExchange facade]
+    book[Injected order book]
     match[Fill model]
-    orders[Order manager]
-    account[Single in-memory account]
-    rules[Order validation]
-    streams[Market and private event streams]
-    faults[One-shot fault hooks]
-    linear[Linear contract fixture, not the default spot path]
+    om[Order manager]
+    acct[Single in-memory account]
+    streams[Market and private streams]
+    faults[One-shot fault state]
   end
 
+  tradeWS --> transport
+  marketWS --> transport
+  restHTTP --> rest
+  rest --> lab
   runtime --> market
-  runtime --> scenario
+  runtime --> overlay
+  runtime --> static
   market --> facade
-  scenario --> facade
+  overlay --> facade
+  static --> facade
   transport --> session --> facade
   rest --> facade
-  rest --> faults --> facade
+  lab --> faults --> facade
   facade --> book
   facade --> match
-  facade --> orders
-  facade --> account
-  rules --> facade
+  facade --> om
+  facade --> acct
+  facade --> streams
+  streams --> transport
   match --> book
-  match --> account
-  facade --> streams --> transport
-  linear -.-> account
+  match --> acct
 ```
 
-Matching fills a limit when it crosses the current book. Resting user orders are not themselves a multi-participant central book. Default configuration does not slice fills. A partial fill in the demonstration is a laboratory hook on an order the runner already placed. Restarting this process drops the account.
+![Paper exchange](architecture/paper-exchange.svg)
+
+Matching fills a limit when it crosses the current book. Resting user orders are not a multi-participant central book. Default configuration does not slice fills. A partial fill in the demonstration is a laboratory hook on an order the runner already placed. Restarting this process drops the account.
 
 ### Trading system UI
 
@@ -198,48 +250,45 @@ A browser client plus a small authentication service. Neither opens a socket to 
 ```mermaid
 flowchart TB
   subgraph browser [Browser]
-    login[Sign in]
-    connect[Connect to runner]
-    menu[Console]
+    welcome[Welcome and sign in]
+    connect[Connect endpoint]
+    console[Trading console]
     spot[Spot monitor]
     futures[Futures monitor]
     dex[DEX monitor]
-    store[Client store]
-    stream[Monitoring stream]
-    levelsPoll[Levels poll]
-    controls[Operator controls]
+    store[Zustand store]
+    stream[StreamMonitoringData]
+    levelsPoll[GetLevels poll]
+    ops[Operator controls]
+    panels[Orders, balances, book, levels, indicators, trades]
   end
 
-  subgraph panels [Spot panels]
-    book[Order book]
-    orders[Open orders]
-    balances[Balances]
-    levelPanel[Levels]
-    indPanel[Indicators]
-    trades[Recent executions]
+  subgraph edge [Local edge]
+    auth[Auth API]
+    creds[(Credential database)]
+    envoy[Envoy gRPC-Web proxy]
+    token[Optional operator token file]
   end
 
-  auth[Auth API]
-  creds[(Credential store)]
-  proxy[gRPC-Web proxy]
-  runner[Trading runner gRPC]
+  runner[Trading runner: TradingCliService]
 
-  login --> auth --> creds
-  connect --> proxy --> runner
-  runner --> stream --> store
-  store --> menu
+  welcome --> auth --> creds
+  connect --> envoy
+  envoy --> token
+  envoy --> runner
+  stream --> runner
+  stream --> store
+  levelsPoll --> runner
+  levelsPoll --> store
+  store --> console
   store --> spot
   store --> futures
   store --> dex
-  spot --> book
-  spot --> orders
-  spot --> balances
-  spot --> levelPanel
-  spot --> indPanel
-  spot --> trades
-  levelsPoll --> runner
-  controls --> proxy
+  spot --> panels
+  ops --> envoy
 ```
+
+![Trading system UI](architecture/trading-system-ui.svg)
 
 The screen follows the runner's instrument type. Spot is the laboratory view. Futures and DEX screens exist for other runner modes and are not what the paper spot demonstration drives. Login is a local demonstration session. It is not an exchange credential. Mutating commands on a non-paper venue also require an operator token injected at the proxy. The paper laboratory leaves that token empty.
 

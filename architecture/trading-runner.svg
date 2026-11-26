@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720">
+  <rect width="1080" height="720" fill="#f7f6f3"/>
+  <text x="28" y="36" font-family="sans-serif" font-size="22" fill="#1c1917">Trading runner</text>
+  <text x="28" y="58" font-family="sans-serif" font-size="13" fill="#57534e">One process. Laboratory path: levels mode + paper client.</text>
+
+  <rect x="28" y="80" width="240" height="160" rx="10" fill="#e7e5e4" stroke="#44403c"/>
+  <text x="44" y="104" font-family="sans-serif" font-size="14" fill="#1c1917">Operator edge</text>
+  <text x="44" y="128" font-family="sans-serif" font-size="12" fill="#292524">gRPC TradingCliService</text>
+  <text x="44" y="148" font-family="sans-serif" font-size="12" fill="#292524">Pause / Cancel / Flatten / Resume</text>
+  <text x="44" y="168" font-family="sans-serif" font-size="12" fill="#292524">Levels CRUD · monitoring stream</text>
+  <text x="44" y="188" font-family="sans-serif" font-size="12" fill="#292524">TradingControl</text>
+  <text x="44" y="208" font-family="sans-serif" font-size="12" fill="#292524">/health · /state · /metrics</text>
+
+  <rect x="300" y="80" width="240" height="160" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="316" y="104" font-family="sans-serif" font-size="14" fill="#1c1917">Market-data engine</text>
+  <text x="316" y="128" font-family="sans-serif" font-size="12" fill="#292524">Venue market client</text>
+  <text x="316" y="148" font-family="sans-serif" font-size="12" fill="#292524">Book and trade cache</text>
+  <text x="316" y="168" font-family="sans-serif" font-size="12" fill="#292524">Broadcast channel</text>
+  <text x="316" y="188" font-family="sans-serif" font-size="12" fill="#292524">Reconnect loop</text>
+
+  <rect x="572" y="80" width="240" height="160" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="588" y="104" font-family="sans-serif" font-size="14" fill="#1c1917">Indicator engine</text>
+  <text x="588" y="128" font-family="sans-serif" font-size="12" fill="#292524">Trade subscriber</text>
+  <text x="588" y="148" font-family="sans-serif" font-size="12" fill="#292524">SMA / EMA calculator</text>
+  <text x="588" y="168" font-family="sans-serif" font-size="12" fill="#292524">Level price bindings</text>
+  <text x="588" y="188" font-family="sans-serif" font-size="12" fill="#292524">Mongo-backed config</text>
+
+  <rect x="844" y="80" width="208" height="160" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="860" y="104" font-family="sans-serif" font-size="14" fill="#1c1917">Asset engine</text>
+  <text x="860" y="128" font-family="sans-serif" font-size="12" fill="#292524">Tick / lot / min notional</text>
+  <text x="860" y="148" font-family="sans-serif" font-size="12" fill="#292524">From venue exchange_info</text>
+
+  <rect x="28" y="280" width="512" height="220" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="44" y="304" font-family="sans-serif" font-size="14" fill="#1c1917">Trading engine</text>
+  <text x="44" y="328" font-family="sans-serif" font-size="12" fill="#292524">Levels event loop</text>
+  <text x="44" y="348" font-family="sans-serif" font-size="12" fill="#292524">Risk manager · circuit breaker · size/count caps</text>
+  <text x="44" y="368" font-family="sans-serif" font-size="12" fill="#292524">TradingState · trading reconciler</text>
+  <text x="44" y="388" font-family="sans-serif" font-size="12" fill="#292524">Submission journal · execution ledger</text>
+  <text x="44" y="408" font-family="sans-serif" font-size="12" fill="#292524">Starts with trading disabled</text>
+  <text x="44" y="440" font-family="sans-serif" font-size="12" fill="#57534e">Risk runs before place. Journals are local recovery material.</text>
+
+  <rect x="572" y="280" width="480" height="220" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="588" y="304" font-family="sans-serif" font-size="14" fill="#1c1917">Exchange engine</text>
+  <text x="588" y="328" font-family="sans-serif" font-size="12" fill="#292524">Venue trade client · session driver</text>
+  <text x="588" y="348" font-family="sans-serif" font-size="12" fill="#292524">ExchangeStateManager</text>
+  <text x="588" y="368" font-family="sans-serif" font-size="12" fill="#292524">WS versus REST reconciler</text>
+  <text x="588" y="388" font-family="sans-serif" font-size="12" fill="#292524">Paper: one in-flight place, cancel, amend</text>
+  <text x="588" y="408" font-family="sans-serif" font-size="12" fill="#292524">Client-id lookup on missing ACK</text>
+  <text x="588" y="440" font-family="sans-serif" font-size="12" fill="#57534e">Single point of contact for account data.</text>
+
+  <rect x="28" y="540" width="320" height="140" rx="10" fill="#e7e5e4" stroke="#44403c"/>
+  <text x="44" y="568" font-family="sans-serif" font-size="14" fill="#1c1917">MongoDB</text>
+  <text x="44" y="592" font-family="sans-serif" font-size="12" fill="#292524">Bot / levels / indicator persistence</text>
+  <text x="44" y="612" font-family="sans-serif" font-size="12" fill="#292524">Required for levels mode</text>
+
+  <rect x="380" y="540" width="320" height="140" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="396" y="568" font-family="sans-serif" font-size="14" fill="#1c1917">Paper venue</text>
+  <text x="396" y="592" font-family="sans-serif" font-size="12" fill="#292524">/ws/market · /ws/trade · REST</text>
+  <text x="396" y="612" font-family="sans-serif" font-size="12" fill="#292524">Started in the laboratory</text>
+
+  <rect x="732" y="540" width="320" height="140" rx="10" fill="#fafaf9" stroke="#a8a29e" stroke-dasharray="4 3"/>
+  <text x="748" y="568" font-family="sans-serif" font-size="14" fill="#57534e">Present, not started here</text>
+  <text x="748" y="592" font-family="sans-serif" font-size="12" fill="#57534e">Binance / Bybit clients</text>
+  <text x="748" y="612" font-family="sans-serif" font-size="12" fill="#57534e">DEX mode · composition binary</text>
+  <text x="748" y="632" font-family="sans-serif" font-size="12" fill="#57534e">Optional Zenoh / Redis</text>
+</svg>

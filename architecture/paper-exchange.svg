@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="680" viewBox="0 0 1080 680">
+  <rect width="1080" height="680" fill="#f7f6f3"/>
+  <text x="28" y="36" font-family="sans-serif" font-size="22" fill="#1c1917">Paper exchange</text>
+  <text x="28" y="58" font-family="sans-serif" font-size="13" fill="#57534e">Separate process. Core has no network I/O.</text>
+
+  <rect x="28" y="80" width="200" height="120" rx="10" fill="#e7e5e4" stroke="#44403c"/>
+  <text x="44" y="108" font-family="sans-serif" font-size="14" fill="#1c1917">Clients</text>
+  <text x="44" y="132" font-family="sans-serif" font-size="12" fill="#292524">/ws/trade</text>
+  <text x="44" y="152" font-family="sans-serif" font-size="12" fill="#292524">/ws/market</text>
+  <text x="44" y="172" font-family="sans-serif" font-size="12" fill="#292524">REST</text>
+
+  <rect x="260" y="80" width="520" height="280" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="276" y="108" font-family="sans-serif" font-size="14" fill="#1c1917">paper-exchange-server</text>
+  <text x="276" y="136" font-family="sans-serif" font-size="12" fill="#292524">Runtime: profile, port, instruments YAML</text>
+  <text x="276" y="156" font-family="sans-serif" font-size="12" fill="#292524">Synthetic market engine · timed overlay · static scenario</text>
+  <text x="276" y="176" font-family="sans-serif" font-size="12" fill="#292524">WebSocket transport · session / command loop</text>
+  <text x="276" y="196" font-family="sans-serif" font-size="12" fill="#292524">REST: balances, open orders, trades, exchange info,</text>
+  <text x="276" y="216" font-family="sans-serif" font-size="12" fill="#292524">positions, order by client id</text>
+  <text x="276" y="248" font-family="sans-serif" font-size="12" fill="#292524">Laboratory hooks</text>
+  <text x="276" y="268" font-family="sans-serif" font-size="12" fill="#292524">disconnect · suppress ACK · reject · duplicate fill</text>
+  <text x="276" y="288" font-family="sans-serif" font-size="12" fill="#292524">stale book · partial fill · fail open-orders</text>
+  <text x="276" y="320" font-family="sans-serif" font-size="12" fill="#57534e">Replies for trading commands stay on /ws/trade.</text>
+
+  <rect x="820" y="80" width="232" height="280" rx="10" fill="#e7e5e4" stroke="#44403c"/>
+  <text x="836" y="108" font-family="sans-serif" font-size="14" fill="#1c1917">Fill models</text>
+  <text x="836" y="136" font-family="sans-serif" font-size="12" fill="#292524">immediate_cross</text>
+  <text x="836" y="156" font-family="sans-serif" font-size="12" fill="#292524">trade_through</text>
+  <text x="836" y="176" font-family="sans-serif" font-size="12" fill="#292524">scripted</text>
+  <text x="836" y="212" font-family="sans-serif" font-size="12" fill="#57534e">Default demo uses</text>
+  <text x="836" y="232" font-family="sans-serif" font-size="12" fill="#57534e">immediate_cross.</text>
+  <text x="836" y="252" font-family="sans-serif" font-size="12" fill="#57534e">Partial fills are a hook,</text>
+  <text x="836" y="272" font-family="sans-serif" font-size="12" fill="#57534e">not the default matcher.</text>
+
+  <rect x="28" y="400" width="1024" height="240" rx="10" fill="#fff" stroke="#44403c"/>
+  <text x="44" y="428" font-family="sans-serif" font-size="14" fill="#1c1917">paper-exchange-core</text>
+  <text x="44" y="456" font-family="sans-serif" font-size="12" fill="#292524">Facade · injected order book · order manager · single account</text>
+  <text x="44" y="476" font-family="sans-serif" font-size="12" fill="#292524">Matching against the current book · balance reservation</text>
+  <text x="44" y="496" font-family="sans-serif" font-size="12" fill="#292524">Market stream: orderbook, public trade</text>
+  <text x="44" y="516" font-family="sans-serif" font-size="12" fill="#292524">Private stream: execution, balance, position</text>
+  <text x="44" y="548" font-family="sans-serif" font-size="12" fill="#57534e">User resting orders are not a multi-participant CLOB.</text>
+  <text x="44" y="568" font-family="sans-serif" font-size="12" fill="#57534e">Spot is the default path. A linear fixture exists and is not the laboratory default.</text>
+  <text x="44" y="588" font-family="sans-serif" font-size="12" fill="#57534e">Process restart drops the in-memory account.</text>
+</svg>
