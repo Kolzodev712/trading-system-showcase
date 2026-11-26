@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="520" viewBox="0 0 920 520">
+  <rect width="920" height="520" fill="#f7f6f3"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="20" fill="#1c1917">System overview</text>
+  <rect x="32" y="70" width="200" height="64" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="48" y="107" font-family="sans-serif" font-size="15" fill="#1c1917">Operator browser</text>
+  <rect x="300" y="70" width="220" height="64" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="316" y="107" font-family="sans-serif" font-size="15" fill="#1c1917">UI, auth, gRPC-Web</text>
+  <rect x="300" y="190" width="360" height="230" rx="8" fill="#e7e5e4" stroke="#44403c"/>
+  <text x="316" y="216" font-family="sans-serif" font-size="15" fill="#1c1917">Trading runner, one process</text>
+  <text x="316" y="248" font-family="sans-serif" font-size="14" fill="#292524">Market data</text>
+  <text x="316" y="274" font-family="sans-serif" font-size="14" fill="#292524">Exchange session and state</text>
+  <text x="316" y="300" font-family="sans-serif" font-size="14" fill="#292524">Trading, risk, reconciliation</text>
+  <text x="316" y="326" font-family="sans-serif" font-size="14" fill="#292524">Indicators and instrument rules</text>
+  <text x="316" y="352" font-family="sans-serif" font-size="14" fill="#292524">gRPC control and health</text>
+  <rect x="700" y="250" width="180" height="80" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="716" y="286" font-family="sans-serif" font-size="15" fill="#1c1917">Paper exchange</text>
+  <text x="716" y="308" font-family="sans-serif" font-size="13" fill="#44403c">book, orders, fills</text>
+  <rect x="32" y="400" width="200" height="64" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="48" y="437" font-family="sans-serif" font-size="15" fill="#1c1917">MongoDB</text>
+  <path d="M232 102 H300" stroke="#44403c" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M410 134 V190" stroke="#44403c" stroke-width="1.5"/>
+  <path d="M660 290 H700" stroke="#44403c" stroke-width="1.5"/>
+  <path d="M232 432 H300 V420" stroke="#44403c" stroke-width="1.5"/>
+</svg>
