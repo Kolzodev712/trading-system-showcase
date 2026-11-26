@@ -10,20 +10,74 @@ The system is a working research and laboratory codebase. It is not production c
 
 An automated trader has to treat market data, order commands, and operator control as different paths, and it has to stay consistent when an acknowledgement is late or a socket drops. Doing that only against a live exchange makes failures expensive and hard to repeat. The laboratory path runs the same runner against a local paper exchange.
 
-## Shape
+## Architecture
 
-The live engines share one process and pass events on in-process channels. The browser does not speak to the exchange. It speaks gRPC-Web to a proxy, which speaks gRPC to the runner.
+The live engines share one process and pass events on in-process channels. The browser does not speak to the exchange. It speaks gRPC-Web to a proxy, which speaks gRPC to the runner. Longer notes are in [system overview](architecture/system-overview.md).
 
-```text
-Operator browser
-    → gRPC-Web proxy
-        → trading runner
-            ├─ market-data session
-            └─ order session
-                    → paper exchange
+### System
+
+```mermaid
+flowchart TB
+  operator[Operator browser]
+  ui[UI and auth]
+  proxy[gRPC-Web proxy]
+  runner[Trading runner]
+  md[Market-data session]
+  ex[Order session]
+  paper[Paper exchange]
+  mongo[(MongoDB)]
+
+  operator --> ui
+  ui --> proxy
+  proxy --> runner
+  runner --> md
+  runner --> ex
+  md --> paper
+  ex --> paper
+  runner --> mongo
+  ui --> mongo
 ```
 
-Diagrams: [system overview](architecture/system-overview.md).
+![System overview](architecture/system-overview.svg)
+
+### Market data
+
+```mermaid
+flowchart LR
+  book[Paper book] --> session[Market-data session]
+  session --> indicators[Indicators]
+  indicators --> level[Level price]
+```
+
+![Market data](architecture/data-flow.svg)
+
+### Order lifecycle
+
+```mermaid
+flowchart LR
+  signal[Level signal] --> risk[Risk check]
+  risk --> place[Place on socket]
+  place --> ack[Acknowledgement]
+  ack --> fill[Fill]
+  fill --> state[State update]
+```
+
+A failed risk check stops the sequence before a place command. The reply is read on the same socket that sent the command.
+
+![Order lifecycle](architecture/order-lifecycle.svg)
+
+### Reconciliation
+
+```mermaid
+flowchart LR
+  socket[Socket events] --> exchange[Exchange state]
+  http[HTTP snapshot] --> exchange
+  exchange --> trading[Trading state]
+```
+
+Startup and a later timer compare the two states. Restarting the paper process drops its in-memory account, so reconciliation cannot restore a venue state that process has forgotten.
+
+![Reconciliation](architecture/reconciliation-flow.svg)
 
 ## Components
 
