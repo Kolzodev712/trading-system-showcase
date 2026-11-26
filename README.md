@@ -79,6 +79,170 @@ Startup and a later timer compare the two states. Restarting the paper process d
 
 ![Reconciliation](architecture/reconciliation-flow.svg)
 
+## The three systems
+
+Each repository is a separate process boundary. The charts below are the internals of those three systems. The laboratory starts the levels path of the runner, the spot paper server, and the browser. Other exchange clients, the on-chain mode, and the linear paper fixture exist in the code and are drawn as present but not started.
+
+### Trading runner
+
+One Rust process. Market data, indicators, the exchange session, and level execution share that process and meet on in-process channels. Operator commands enter through gRPC and do not travel on the market-data channel.
+
+```mermaid
+flowchart TB
+  subgraph edge [Operator edge]
+    grpc[gRPC TradingCliService]
+    health[HTTP health, state, and metrics]
+    control[Trading control]
+  end
+
+  subgraph market [Market-data engine]
+    mdclient[Venue market client]
+    mdstate[Book and trade cache]
+  end
+
+  subgraph indicators [Indicator engine]
+    subscriber[Trade subscriber]
+    calculator[SMA and EMA calculator]
+    bindings[Level price bindings]
+  end
+
+  subgraph exchange [Exchange engine]
+    client[Venue trade client]
+    exstate[Exchange state]
+    exrecon[WS versus REST reconciler]
+  end
+
+  subgraph trading [Trading engine]
+    levels[Levels event loop]
+    risk[Risk manager]
+    tstate[Trading state]
+    trecon[Trading-state reconciler]
+    journal[Submission journal and execution ledger]
+  end
+
+  assets[Asset engine: instrument rules]
+  mongo[(MongoDB configuration)]
+  other[Other venue clients and DEX mode, not started in the laboratory]
+
+  mdclient --> mdstate
+  mdstate --> subscriber
+  mdstate --> levels
+  subscriber --> calculator --> bindings --> levels
+  levels --> risk --> client
+  client --> exstate
+  exstate --> exrecon
+  exstate --> trecon --> tstate
+  tstate --> levels
+  assets --> risk
+  assets --> levels
+  grpc --> control --> levels
+  levels --> journal
+  mongo --> levels
+  mongo --> bindings
+  client -.-> other
+```
+
+The paper trade client sends each command on one socket and reads the reply on that same socket. It keeps a single in-flight place, cancel, and amend. A missing acknowledgement is looked up by client id instead of placing a second order. Trading starts disabled until an operator enables it. Risk runs before that place call. The asset engine supplies tick size, lot size, and minimum notional from the venue.
+
+### Paper exchange
+
+A separate process. The core has no sockets. The server owns HTTP, WebSocket, the synthetic book, and the one-shot laboratory hooks.
+
+```mermaid
+flowchart TB
+  subgraph server [Paper server]
+    runtime[Startup config and profile]
+    market[Synthetic market engine]
+    scenario[Optional timed scenario overlay]
+    transport[WebSocket transport]
+    session[Session and command loop]
+    rest[REST snapshots and laboratory hooks]
+  end
+
+  subgraph core [Paper core, no network I/O]
+    facade[Exchange facade]
+    book[Order book]
+    match[Fill model]
+    orders[Order manager]
+    account[Single in-memory account]
+    rules[Order validation]
+    streams[Market and private event streams]
+    faults[One-shot fault hooks]
+    linear[Linear contract fixture, not the default spot path]
+  end
+
+  runtime --> market
+  runtime --> scenario
+  market --> facade
+  scenario --> facade
+  transport --> session --> facade
+  rest --> facade
+  rest --> faults --> facade
+  facade --> book
+  facade --> match
+  facade --> orders
+  facade --> account
+  rules --> facade
+  match --> book
+  match --> account
+  facade --> streams --> transport
+  linear -.-> account
+```
+
+Matching fills a limit when it crosses the current book. Resting user orders are not themselves a multi-participant central book. Default configuration does not slice fills. A partial fill in the demonstration is a laboratory hook on an order the runner already placed. Restarting this process drops the account.
+
+### Trading system UI
+
+A browser client plus a small authentication service. Neither opens a socket to the paper exchange. Monitoring and operator commands go through a gRPC-Web proxy to the runner.
+
+```mermaid
+flowchart TB
+  subgraph browser [Browser]
+    login[Sign in]
+    connect[Connect to runner]
+    menu[Console]
+    spot[Spot monitor]
+    futures[Futures monitor]
+    dex[DEX monitor]
+    store[Client store]
+    stream[Monitoring stream]
+    levelsPoll[Levels poll]
+    controls[Operator controls]
+  end
+
+  subgraph panels [Spot panels]
+    book[Order book]
+    orders[Open orders]
+    balances[Balances]
+    levelPanel[Levels]
+    indPanel[Indicators]
+    trades[Recent executions]
+  end
+
+  auth[Auth API]
+  creds[(Credential store)]
+  proxy[gRPC-Web proxy]
+  runner[Trading runner gRPC]
+
+  login --> auth --> creds
+  connect --> proxy --> runner
+  runner --> stream --> store
+  store --> menu
+  store --> spot
+  store --> futures
+  store --> dex
+  spot --> book
+  spot --> orders
+  spot --> balances
+  spot --> levelPanel
+  spot --> indPanel
+  spot --> trades
+  levelsPoll --> runner
+  controls --> proxy
+```
+
+The screen follows the runner's instrument type. Spot is the laboratory view. Futures and DEX screens exist for other runner modes and are not what the paper spot demonstration drives. Login is a local demonstration session. It is not an exchange credential. Mutating commands on a non-paper venue also require an operator token injected at the proxy. The paper laboratory leaves that token empty.
+
 ## Components
 
 | Component | Role |
