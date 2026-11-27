@@ -24,6 +24,6 @@
 
 ## Owner gates
 
-1. F01 credential rotation confirmation  
-2. F18 dataset redistribution  
-3. Tag/release publication approval  
+1. F01 credential rotation — **CONFIRMED 2026-11-27** (owner: credentials rotated)
+2. F18 dataset / public research — **CONFIRMED 2026-11-27** (owner: OK for public research)
+3. Tag/release `v0.1.1` — in progress after confirmations  

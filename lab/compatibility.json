@@ -5,15 +5,15 @@
   "components": {
     "trading_system": {
       "repo": "https://github.com/Kolzodev712/trading_system.git",
-      "ref": "28b7765cd4d4eab36c27cab5129bd3486ae25010"
+      "ref": "9ee0dbf263fb9167895b0892d67e156e1e68b91b"
     },
     "k-paper": {
       "repo": "https://github.com/Kolzodev712/k-paper.git",
-      "ref": "bd671582f834ccc2402147b1b30ca8fca4981c76"
+      "ref": "07330dd47badc1b626e35f9f290aca2f8be7382d"
     },
     "trading-system-ui": {
       "repo": "https://github.com/Kolzodev712/trading-system-ui.git",
-      "ref": "3bd5ca2b405c6ad043a1f44ca911de728fb1b7ce"
+      "ref": "06d7a68e5f7c6fabb6c3bbcf8cc6a0e5d61d6122"
     }
   }
 }
