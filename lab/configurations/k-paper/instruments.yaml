@@ -1,0 +1,74 @@
+# Paper exchange runtime config (PAPER_EXCHANGE_CONFIG)
+instruments:
+  - id: BTC-USDT
+    symbol: BTC-USDT
+    base_asset: BTC
+    quote_asset: USDT
+    tick_size: 0.01
+    lot_size: 0.001
+    min_notional: 10
+  - id: ETH-USDT
+    symbol: ETH-USDT
+    base_asset: ETH
+    quote_asset: USDT
+    tick_size: 0.01
+    lot_size: 0.001
+    min_notional: 10
+  - id: SOL-USDT
+    symbol: SOL-USDT
+    base_asset: SOL
+    quote_asset: USDT
+    tick_size: 0.01
+    lot_size: 0.001
+    min_notional: 10
+  - id: BNB-USDT
+    symbol: BNB-USDT
+    base_asset: BNB
+    quote_asset: USDT
+    tick_size: 0.01
+    lot_size: 0.001
+    min_notional: 10
+  - id: XRP-USDT
+    symbol: XRP-USDT
+    base_asset: XRP
+    quote_asset: USDT
+    tick_size: 0.0001
+    lot_size: 1
+    min_notional: 10
+initial_balances:
+  - asset: USDT
+    amount: 1000000
+  - asset: BTC
+    amount: 0
+  - asset: ETH
+    amount: 0
+  - asset: SOL
+    amount: 0
+  - asset: BNB
+    amount: 0
+  - asset: XRP
+    amount: 0
+fill_model:
+  kind: immediate_cross
+  slippage_bps: 0
+  fee_bps: 0
+  partial_fills: false
+max_trade_history: 10000
+market:
+  interval_ms: 500
+  seed: null
+  step: 100
+  spread_half: 50
+  levels: 5
+  trade_probability: 0.2
+  instruments:
+    - id: BTC-USDT
+      initial_mid: 50000
+    - id: ETH-USDT
+      initial_mid: 3000
+    - id: SOL-USDT
+      initial_mid: 150
+    - id: BNB-USDT
+      initial_mid: 600
+    - id: XRP-USDT
+      initial_mid: 0.55

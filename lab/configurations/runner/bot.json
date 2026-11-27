@@ -1,0 +1,49 @@
+{
+  "system": {
+    "log_level": "info",
+    "shutdown_timeout_secs": 30
+  },
+  "exchange_engine": {
+    "exchange": "Paper",
+    "config": {
+      "paper_exchange_url": "ws://k-paper:19999/ws/trade",
+      "pairs": [
+        {
+          "base": "BTC",
+          "quote": "USDT"
+        },
+        {
+          "base": "ETH",
+          "quote": "USDT"
+        }
+      ],
+      "instrument_type": "Spot"
+    }
+  },
+  "server": {
+    "bind_address": "0.0.0.0",
+    "port": 8080
+  },
+  "redis": {
+    "url": "",
+    "enabled": false
+  },
+  "features": {
+    "enable_reconciliation": true
+  },
+  "reconciliation": {
+    "exchange_level_interval_ms": 20000,
+    "trading_level_interval_ms": 20000,
+    "enabled": true
+  },
+  "mongo": {
+    "connection_string": "mongodb://mongodb:27017",
+    "database": "trading_system",
+    "bot_id": "main_bot",
+    "enabled": true
+  },
+  "submission_journal_path": "runtime-data/submission-journal.jsonl",
+  "execution_ledger_path": "runtime-data/execution-ledger.jsonl",
+  "shadow_journal_path": "runtime-data/shadow-journal.jsonl",
+  "runtime_snapshot_path": "runtime-data/runtime-snapshot.json"
+}

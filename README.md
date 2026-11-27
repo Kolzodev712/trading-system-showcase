@@ -14,7 +14,18 @@ The system is a working research and laboratory codebase. It is not production c
 and it is not mainnet ready. This write-up does not claim a latency budget, a production
 deployment, or a profitable strategy.
 
+## Paper laboratory
+
+A Compose quickstart lives in [`lab/`](lab/README.md):
+
+```bash
+cd lab && cp .env.example .env && make doctor && make build && make demo
+```
+
+Requires sibling checkouts of `trading_system`, `k-paper`, and `trading-system-ui`. Default configuration is paper-only; trading remains disabled until enabled in the UI.
+
 ## Problem
+
 
 An automated trader has to treat market data, order commands, and operator control as different paths, and it has to stay consistent when an acknowledgement is late or a socket drops. Doing that only against a live exchange makes failures expensive and hard to repeat. The laboratory path runs the same runner against a local paper exchange.
 

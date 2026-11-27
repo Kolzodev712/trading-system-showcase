@@ -1,0 +1,150 @@
+name: trading-showcase
+
+# Isolated paper demonstration. No service publishes a port except the operator
+# UI and the runner health endpoint, both bound to 127.0.0.1.
+# The network is internal, so containers cannot reach real exchange hosts.
+
+networks:
+  showcase:
+    driver: bridge
+    # Published loopback ports do not work on an internal network with this
+    # Docker engine. Masquerade is off so containers cannot NAT to the internet.
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+
+volumes:
+  mongo_data:
+  runner_data:
+
+services:
+  mongodb:
+    image: mongo:7.0
+    pull_policy: never
+    restart: unless-stopped
+    networks: [showcase]
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  k-paper:
+    image: trading-showcase-k-paper:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: docker/kpaper.Dockerfile
+      additional_contexts:
+        kpaper: ${K_PAPER_DIR:-../k-paper}
+    restart: unless-stopped
+    networks: [showcase]
+    environment:
+      PAPER_EXCHANGE_HOST: "0.0.0.0"
+      PAPER_EXCHANGE_PORT: "19999"
+      PAPER_EXCHANGE_PROFILE: dev
+      PAPER_EXCHANGE_SEED: "42"
+      PAPER_EXCHANGE_CONFIG: /config/instruments.yaml
+      RUST_LOG: info
+    volumes:
+      - ./configurations/k-paper/instruments.yaml:/config/instruments.yaml:ro
+    stop_grace_period: 10s
+
+  runner:
+    image: trading-showcase-runner:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: docker/runner.Dockerfile
+      additional_contexts:
+        trading_system: ./artifacts/build/trading_system
+    restart: unless-stopped
+    networks: [showcase]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      k-paper:
+        condition: service_healthy
+    environment:
+      SHOWCASE_PROFILE: ${SHOWCASE_PROFILE:-normal}
+      RUST_LOG: info
+      TRADING_LOG_JSON: "1"
+      TRADING_RUN_ID: showcase-paper
+      TRACE_JAEGER_DISABLED: "1"
+    volumes:
+      - ./configurations:/opt/showcase/configurations:ro
+      - ./scripts:/opt/showcase/scripts:ro
+      - ./scripts/validate-and-run.sh:/usr/local/bin/validate-and-run.sh:ro
+      - runner_data:/app/runtime-data
+    ports:
+      - "127.0.0.1:8080:8080"
+    stop_grace_period: 40s
+
+  envoy:
+    image: envoyproxy/envoy:v1.31.5
+    pull_policy: never
+    restart: unless-stopped
+    networks: [showcase]
+    depends_on:
+      runner:
+        condition: service_healthy
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    volumes:
+      - ./configurations/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./configurations/envoy/operator_token.empty:/run/secrets/trading_operator_token:ro
+
+  auth:
+    image: trading-showcase-auth:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+      target: auth
+      additional_contexts:
+        ui: ${UI_DIR:-../trading-system-ui}
+    restart: unless-stopped
+    # The existing auth server binds 127.0.0.1. Share the UI network namespace
+    # so nginx can proxy to that loopback without changing the UI repository.
+    network_mode: service:ui
+    depends_on:
+      ui:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    environment:
+      AUTH_PORT: "3001"
+      MONGODB_URI: mongodb://mongodb:27017/trading_ui
+      JWT_SECRET: ${JWT_SECRET:-showcase-lab-change-me}
+
+  ui:
+    image: trading-showcase-ui:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+      target: web
+      additional_contexts:
+        ui: ${UI_DIR:-../trading-system-ui}
+    restart: unless-stopped
+    networks: [showcase]
+    depends_on:
+      envoy:
+        condition: service_started
+    ports:
+      - "127.0.0.1:5173:8080"
+
+  ops:
+    image: trading-showcase-ops:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: docker/ops.Dockerfile
+    restart: unless-stopped
+    networks: [showcase]
+    volumes:
+      - ${UI_DIR:-../trading-system-ui}/proto:/proto:ro
+    depends_on:
+      k-paper:
+        condition: service_healthy
