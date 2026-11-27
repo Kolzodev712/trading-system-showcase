@@ -1,5 +1,5 @@
 #!/bin/sh
-# Connectivity plus whatever order evidence the live level runner has produced.
+# Connectivity plus a newly placed runner order correlated with a place ACK (or fill).
 set -eu
 # shellcheck disable=SC1091
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
@@ -26,6 +26,12 @@ info=$(ops curl -fsS http://k-paper:19999/exchange_info)
 echo "$info" | grep -q 'BTC-USDT' || { echo "FAIL exchange info" >&2; exit 1; }
 echo "ok   paper exchange info"
 
+baseline_orders=$(ops curl -fsS 'http://k-paper:19999/open_orders?instrument_id=BTC-USDT' || true)
+baseline_trades=$(ops curl -fsS 'http://k-paper:19999/trades?limit=50' || true)
+baseline_order_ids=$(paper_order_ids "$baseline_orders")
+baseline_trade_ids=$(paper_order_ids "$baseline_trades")
+log_mark=$(compose logs runner --no-color 2>/dev/null | wc -l | tr -d ' ')
+
 status=$(ops grpcurl -plaintext -import-path /proto -proto trading_cli.proto \
   -d '{}' runner:50051 trading_cli.TradingCliService/GetTradingStatus)
 echo "$status" | grep -q '"enabled": true' || {
@@ -34,32 +40,40 @@ echo "$status" | grep -q '"enabled": true' || {
     -d '{"enabled":true}' runner:50051 trading_cli.TradingCliService/SetTradingEnabled
 }
 
+correlate_new_order() {
+  _id=$1
+  _runner_logs=$2
+  echo "$_runner_logs" | grep -F "ack_exchange_id=${_id}" >/dev/null \
+    && return 0
+  echo "$_runner_logs" | grep -F 'k-paper: sent place_order' >/dev/null \
+    && echo "$_runner_logs" | grep -F "order_id=${_id}" >/dev/null \
+    && return 0
+  return 1
+}
+
 deadline=$(( $(date +%s) + 180 ))
 while [ "$(date +%s)" -lt "$deadline" ]; do
-  state=$(ops curl -fsS http://runner:8080/state || true)
+  runner_logs=$(runner_logs_since "$log_mark")
   orders=$(ops curl -fsS 'http://k-paper:19999/open_orders?instrument_id=BTC-USDT' || true)
-  trades=$(ops curl -fsS 'http://k-paper:19999/trades?limit=5' || true)
-  active=$(printf '%s' "$state" | sed -n 's/.*"active_orders":\([0-9]*\).*/\1/p')
-  pending=$(printf '%s' "$state" | sed -n 's/.*"pending_orders":\([0-9]*\).*/\1/p')
-  if [ "${active:-0}" != "0" ] || [ "${pending:-0}" != "0" ]; then
-    echo "ok   runner state shows orders: $state"
-    echo "scenario normal-execution: passed"
-    exit 0
-  fi
-  if [ "$orders" != "[]" ] && [ -n "$orders" ]; then
-    echo "ok   paper open orders: $orders"
-    echo "scenario normal-execution: passed"
-    exit 0
-  fi
-  if [ "$trades" != "[]" ] && [ -n "$trades" ] && echo "$trades" | grep -q orderId; then
-    echo "ok   paper trades: $trades"
-    echo "scenario normal-execution: passed"
-    exit 0
-  fi
+  for id in $(paper_order_ids "$orders"); do
+    if id_is_new "$id" "$baseline_order_ids" && correlate_new_order "$id" "$runner_logs"; then
+      echo "ok   new paper order $id correlated with runner place evidence"
+      echo "scenario normal-execution: passed"
+      exit 0
+    fi
+  done
+  trades=$(ops curl -fsS 'http://k-paper:19999/trades?limit=50' || true)
+  for id in $(paper_order_ids "$trades"); do
+    if id_is_new "$id" "$baseline_trade_ids" && correlate_new_order "$id" "$runner_logs"; then
+      echo "ok   new paper trade for order $id correlated with runner place evidence"
+      echo "scenario normal-execution: passed"
+      exit 0
+    fi
+  done
   sleep 5
 done
 
-echo "BLOCKED no runner order or paper fill was observed within 180s" >&2
-echo "runner /state was: ${state:-unknown}" >&2
-echo "This scenario does not invent an order. Inspect runner logs for indicator warmup or risk blocks." >&2
+echo "BLOCKED no new runner order correlated with ack or execution within 180s" >&2
+echo "Baseline open-order ids were not sufficient; stale orders alone do not pass." >&2
+echo "Inspect runner logs for indicator warmup or risk blocks." >&2
 exit 2

@@ -1,0 +1,16 @@
+{
+  "exchange_engine": {
+    "exchange": "Paper",
+    "config": {
+      "paper_exchange_url": "ws://k-paper:19999/ws/trade"
+    }
+  },
+  "mongo": {
+    "connection_string": "mongodb://mongodb:27017",
+    "enabled": true
+  },
+  "redis": {
+    "url": "redis://redis:6379",
+    "enabled": true
+  }
+}

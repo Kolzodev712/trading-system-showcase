@@ -1,7 +1,7 @@
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 COMPOSE := docker compose --project-directory $(ROOT) -f $(ROOT)/compose.yaml
 
-.PHONY: doctor build demo status logs reset stop verify bundle scenario
+.PHONY: doctor build demo status logs reset stop verify bundle scenario qualify
 
 doctor:
 	sh $(ROOT)/scripts/doctor.sh
@@ -19,7 +19,7 @@ demo:
 	  if curl -fsS http://127.0.0.1:8080/health >/dev/null 2>&1 && curl -fsS http://127.0.0.1:5173/ >/dev/null 2>&1; then \
 	    echo "UI:      http://127.0.0.1:5173"; \
 	    echo "Health:  http://127.0.0.1:8080/health"; \
-	    echo "Sign in with the local demonstration account documented in documentation/interview-guide.md"; \
+	    echo "Trading starts disabled. Sign in with the local laboratory account (see lab/README.md)."; \
 	    exit 0; \
 	  fi; \
 	  i=$$((i+1)); sleep 3; \
@@ -50,3 +50,7 @@ bundle:
 scenario:
 	@test -n "$(SCENARIO)" || (echo "usage: make scenario SCENARIO=normal-execution"; exit 1)
 	sh $(ROOT)/scripts/scenario.sh $(SCENARIO)
+
+# Stronger technical qualification: reuses trading_system just recipes (not duplicated here).
+qualify:
+	sh $(ROOT)/scripts/qualify.sh

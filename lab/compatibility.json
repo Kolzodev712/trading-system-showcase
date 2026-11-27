@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "description": "Pinned component revisions for reproducible laboratory builds (LAB_SOURCE_MODE=release).",
+  "pinned_at": "2026-11-27",
+  "components": {
+    "trading_system": {
+      "repo": "https://github.com/Kolzodev712/trading_system.git",
+      "ref": "28b7765cd4d4eab36c27cab5129bd3486ae25010"
+    },
+    "k-paper": {
+      "repo": "https://github.com/Kolzodev712/k-paper.git",
+      "ref": "4327bd266834ed3fcb582261d180d62f459ca9b9"
+    },
+    "trading-system-ui": {
+      "repo": "https://github.com/Kolzodev712/trading-system-ui.git",
+      "ref": "3bd5ca2b405c6ad043a1f44ca911de728fb1b7ce"
+    }
+  }
+}

@@ -36,6 +36,7 @@ services:
       PAPER_EXCHANGE_PROFILE: dev
       PAPER_EXCHANGE_SEED: "42"
       PAPER_EXCHANGE_CONFIG: /config/instruments.yaml
+      PAPER_LAB_FAULTS: "1"
       RUST_LOG: info
     volumes:
       - ./configurations/k-paper/instruments.yaml:/config/instruments.yaml:ro
@@ -90,6 +91,7 @@ services:
         condition: service_healthy
     environment:
       AUTH_PORT: "3001"
+      AUTH_MODE: lab
       MONGODB_URI: mongodb://mongodb:27017/trading_ui
       JWT_SECRET: ${JWT_SECRET:-showcase-lab-change-me}
 

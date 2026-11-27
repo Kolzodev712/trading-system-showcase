@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1
-# Build context is this demo repository. k-paper sources come from the named
-# additional context `kpaper` so this image does not vendor proprietary source.
+# k-paper sources from additional context `kpaper` (sibling public checkout).
 FROM rust:1.98.1-bookworm AS build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config libssl-dev ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY --from=kpaper / /src
-RUN cargo build --release --bin k-paper
+RUN test -f Cargo.lock
+RUN cargo build --locked --release --bin k-paper
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \

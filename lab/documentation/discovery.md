@@ -97,11 +97,11 @@ MongoDB is required by the levels runner. Redis, Zenoh, Prometheus, and Jaeger a
 
 | Scenario | Basis | Expected showcase status until executed |
 | --- | --- | --- |
-| Normal lifecycle | levels mode places against the paper book after indicators warm up | script waits for a real order; exit 2 if none appears |
-| Partial fill | lab hook on an order the runner already placed | not the default matcher |
-| Disconnect | `POST /test/disconnect_clients` and the runner reconnect log | trade client logs a reconnect |
-| Reconciliation | bootstrap log line | planted drift is not claimed |
-| Lost acknowledgement | `POST /test/suppress_place_ack` | hook only; recovery-by-restart is not automated |
+| Normal lifecycle | levels mode places against the paper book after indicators warm up | new order vs baseline + runner ACK/execution correlation; exit 2 if none |
+| Partial fill | lab hook on a runner-ACK’d resting order; REST partial state | not the default matcher |
+| Disconnect | `POST /test/disconnect_clients`, reconnect log, trade socket connected again | exit 2 if reconnect incomplete |
+| Reconciliation | bootstrap start and completion log lines | planted drift is not claimed |
+| Lost acknowledgement | `POST /test/suppress_place_ack` then `reset_lab_faults` | hook only; recovery-by-restart is not automated or claimed |
 | Risk rejection | tighter `max_order_qty` profile | log line `blocked by risk check` |
 | Operator control | gRPC `PauseEntries` / `Resume` | Paper does not require an operator token |
 | Observability | JSON logs and `/health` | `/metrics` is 404 without an exporter |

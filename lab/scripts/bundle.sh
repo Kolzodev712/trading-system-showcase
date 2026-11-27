@@ -35,7 +35,7 @@ cp "$ROOT/scripts/bundle/reset.sh" "$out/scripts/reset.sh"
 cp "$ROOT/scripts/validate-and-run.sh" "$out/scripts/validate-and-run.sh"
 cp "$ROOT/scripts/validate-config.sh" "$out/scripts/validate-config.sh"
 mkdir -p "$out/fixtures/proto"
-cp "${UI_DIR:-../trading-system-ui}/proto/trading_cli.proto" "$out/fixtures/proto/trading_cli.proto"
+cp "$UI_DIR/proto/trading_cli.proto" "$out/fixtures/proto/trading_cli.proto"
 cp "$ROOT/scripts/bundle/README.md" "$out/README.md"
 chmod +x "$out/scripts/"*.sh
 
