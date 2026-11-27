@@ -2,9 +2,17 @@
 
 A modular trading runtime written in Rust. It ingests market data, keeps exchange and internal state, applies risk checks, and submits orders through an exchange client. A separate paper exchange supplies the market and the order acknowledgements. A browser UI watches and controls the runtime over gRPC.
 
-The implementation is proprietary. This repository is a technical description of that system and of how it is demonstrated. It does not contain the source, container images, or runtime configuration. A live demonstration is available on request.
+This repository holds ecosystem documentation, architecture diagrams, and presentation
+materials for the trading laboratory. It is licensed under the Apache License 2.0
+(see [LICENSE](LICENSE) and [NOTICE](NOTICE)). Copyright © 2026 T.L.P. Arc Entertainment Ltd.
 
-The system is a working research and laboratory codebase. It is not production complete and it is not mainnet ready. This write-up does not claim a latency budget, a production deployment, or a profitable strategy.
+Implementation source lives in sibling repositories (`trading_system`, `k-paper`,
+`trading-system-ui`). A coordinated public release of those components is in preparation
+via a reviewed export; this showcase does not currently ship runtime binaries or Compose.
+
+The system is a working research and laboratory codebase. It is not production complete
+and it is not mainnet ready. This write-up does not claim a latency budget, a production
+deployment, or a profitable strategy.
 
 ## Problem
 

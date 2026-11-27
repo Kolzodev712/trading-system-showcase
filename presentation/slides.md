@@ -10,7 +10,9 @@ A Rust trading runner for market data, order execution, risk, and operator contr
 
 The laboratory runs that runner against a local paper exchange and the existing browser UI.
 
-It is not production complete and not mainnet ready. The source is proprietary. This conversation is about the design that is actually in the tree.
+It is not production complete and not mainnet ready. Implementation repositories are
+being prepared for a reviewed public export under Apache 2.0 (UI remains MIT). This
+conversation is about the design that is actually in the tree.
 
 ---
 
