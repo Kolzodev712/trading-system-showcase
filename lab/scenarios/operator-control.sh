@@ -6,13 +6,12 @@ ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 . "$ROOT/scripts/lib.sh"
 
 entries_paused_true() {
-  printf '%s' "$1" | grep -q '"entriesPaused": true' \
-    || printf '%s' "$1" | grep -q '"entries_paused": true'
+  printf '%s' "$1" | python3 -c 'import json,sys; d=json.load(sys.stdin); raise SystemExit(0 if d.get("entriesPaused") is True else 1)'
 }
 
+# proto3 JSON omits default false — missing entriesPaused means unpaused.
 entries_paused_false() {
-  printf '%s' "$1" | grep -q '"entriesPaused": false' \
-    || printf '%s' "$1" | grep -q '"entries_paused": false'
+  printf '%s' "$1" | python3 -c 'import json,sys; d=json.load(sys.stdin); raise SystemExit(0 if d.get("entriesPaused") is not True else 1)'
 }
 
 echo "scenario operator-control"

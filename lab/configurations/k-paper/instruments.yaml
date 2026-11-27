@@ -57,8 +57,8 @@ max_trade_history: 10000
 market:
   interval_ms: 500
   seed: null
-  step: 100
-  spread_half: 50
+  # Omit step_ticks/spread_half_ticks to use ~20/~10 bps defaults per instrument.
+  # Absolute step/spread_half keys are rejected by current k-paper.
   levels: 5
   trade_probability: 0.2
   instruments:
@@ -72,3 +72,4 @@ market:
       initial_mid: 600
     - id: XRP-USDT
       initial_mid: 0.55
+

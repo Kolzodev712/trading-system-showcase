@@ -14,7 +14,7 @@ Skip the login form so the demonstration password is not in the image. Skip any 
 
 ## How
 
-1. `make demo` in the private demonstration repository.
+1. `cd lab && make demo` in this public showcase repository.
 2. Open `http://127.0.0.1:5173` and sign in.
 3. Wait until the banner shows the paper venue.
 4. Capture with the browser or the desktop tool at 1440×900 or larger.

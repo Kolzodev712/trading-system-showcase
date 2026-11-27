@@ -4,3 +4,4 @@
 *.jpeg
 *.webp
 !screenshots/README.md
+!screenshots/*.png

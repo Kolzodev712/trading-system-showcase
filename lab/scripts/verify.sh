@@ -96,21 +96,17 @@ echo "$status" | grep -q 'LOCAL' || { echo "FAIL environment is not LOCAL: $stat
 echo "ok   runner reports PAPER LOCAL"
 
 # Trading must remain disabled for read-only verify.
-case "$status" in
-  *'"enabled": true'*|*'\"enabled\": true'*)
-    echo "FAIL trading is enabled; read-only verify requires disabled trading" >&2
-    exit 1
-    ;;
-esac
-# grpcurl JSON may use enabled: true without quotes around true
-if echo "$status" | python3 -c 'import json,sys; d=json.load(sys.stdin); raise SystemExit(0 if d.get("enabled") is False else 1)' 2>/dev/null; then
-  echo "ok   trading disabled"
-elif echo "$status" | grep -Eq '"enabled"[[:space:]]*:[[:space:]]*false'; then
-  echo "ok   trading disabled"
-else
-  echo "FAIL could not confirm trading disabled from status: $status" >&2
+# proto3 JSON omits default false, so missing "enabled" means disabled.
+if ! echo "$status" | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+# Fail only when explicitly enabled.
+raise SystemExit(1 if d.get("enabled") is True else 0)
+'; then
+  echo "FAIL trading is enabled; read-only verify requires disabled trading: $status" >&2
   exit 1
 fi
+echo "ok   trading disabled"
 
 balances=$(ops curl -fsS --max-time 5 http://k-paper:19999/balances)
 echo "$balances" | grep -q USDT || { echo "FAIL paper balances" >&2; exit 1; }

@@ -12,7 +12,9 @@ pick_runner_order() {
   _ids=$(paper_order_ids "$_orders")
   _runner_logs=$(runner_logs_since 0)
   for id in $_ids; do
-    if echo "$_runner_logs" | grep -F "ack_exchange_id=${id}" >/dev/null; then
+    if echo "$_runner_logs" | grep -F "ack_exchange_id=${id}" >/dev/null \
+      || echo "$_runner_logs" | grep -F "OrderId(\"${id}\")" >/dev/null \
+      || echo "$_runner_logs" | grep -F "$id" >/dev/null; then
       printf '%s' "$id"
       return 0
     fi
