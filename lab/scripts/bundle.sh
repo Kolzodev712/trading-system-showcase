@@ -34,10 +34,30 @@ cp "$ROOT/scripts/bundle/stop.sh" "$out/scripts/stop.sh"
 cp "$ROOT/scripts/bundle/reset.sh" "$out/scripts/reset.sh"
 cp "$ROOT/scripts/validate-and-run.sh" "$out/scripts/validate-and-run.sh"
 cp "$ROOT/scripts/validate-config.sh" "$out/scripts/validate-config.sh"
+cp "$ROOT/scripts/validate-config.py" "$out/scripts/validate-config.py"
 mkdir -p "$out/fixtures/proto"
-cp "$UI_DIR/proto/trading_cli.proto" "$out/fixtures/proto/trading_cli.proto"
+proto_src="$ROOT/artifacts/build/trading-system-ui/proto/trading_cli.proto"
+if [ ! -f "$proto_src" ]; then
+  proto_src="$UI_DIR/proto/trading_cli.proto"
+fi
+cp "$proto_src" "$out/fixtures/proto/trading_cli.proto"
 cp "$ROOT/scripts/bundle/README.md" "$out/README.md"
+cp "$ROOT/compatibility.json" "$out/compatibility.json" 2>/dev/null || true
+if [ -f "$ROOT/artifacts/build/STAGED_REVISIONS.json" ]; then
+  cp "$ROOT/artifacts/build/STAGED_REVISIONS.json" "$out/STAGED_REVISIONS.json"
+fi
 chmod +x "$out/scripts/"*.sh
+
+# Fail closed: offline validator must work without the lab git tree.
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "bundle: python3 required on host to validate the packaged validator" >&2
+  exit 1
+fi
+sh "$out/scripts/validate-config.sh" "$out/configurations/runner/bot.json"
+if sh "$out/scripts/validate-config.sh" "$ROOT/fixtures/invalid-bot.json" >/dev/null 2>&1; then
+  echo "bundle: packaged validator accepted invalid fixture" >&2
+  exit 1
+fi
 
 arch=$(uname -m)
 os=$(uname -s)
@@ -58,7 +78,7 @@ cat > "$out/manifest.json" <<EOF
     "mongo:7.0",
     "envoyproxy/envoy:v1.31.5"
   ],
-  "notes": "Private interview bundle. Does not include repository history or proprietary source."
+  "notes": "Offline laboratory bundle. Requires Docker; ships validate-config.py for Paper isolation checks."
 }
 EOF
 

@@ -7,19 +7,60 @@ set -eu
 
 echo "verify: read-only readiness and compatibility checks"
 
-sh "$ROOT/scripts/validate-config.sh" "$ROOT/configurations/runner/bot.json"
-echo "ok   paper isolation config"
-
-if sh "$ROOT/scripts/check-proto-compat.sh" >/dev/null; then
-  echo "ok   protocol compatibility"
-else
-  echo "FAIL protocol compatibility" >&2
+# Require a live stack — refuse to pass when services are down.
+if ! curl -fsS --max-time 3 http://127.0.0.1:8080/health >/dev/null 2>&1; then
+  echo "FAIL runner health endpoint not reachable on 127.0.0.1:8080 (is make demo running?)" >&2
+  exit 1
+fi
+if ! curl -fsS --max-time 3 http://127.0.0.1:5173/ >/dev/null 2>&1; then
+  echo "FAIL UI not reachable on 127.0.0.1:5173" >&2
   exit 1
 fi
 
-# Weak signal only: one outbound HTTP probe after masquerade disabled.
-# This does not prove comprehensive network isolation by itself.
-if ops wget -q -O- --timeout=3 http://1.1.1.1 >/dev/null 2>&1; then
+sh "$ROOT/scripts/validate-config.sh" "$ROOT/configurations/runner/bot.json"
+echo "ok   paper isolation config"
+
+# Prefer staged protos when present (release build), else live checkouts.
+if [ -f "$ROOT/artifacts/build/trading_system/libs/trading_proto/proto/trading_cli.proto" ] \
+  && [ -f "$ROOT/artifacts/build/trading-system-ui/proto/trading_cli.proto" ]; then
+  if ! diff -q \
+    "$ROOT/artifacts/build/trading_system/libs/trading_proto/proto/trading_cli.proto" \
+    "$ROOT/artifacts/build/trading-system-ui/proto/trading_cli.proto" >/dev/null; then
+    echo "FAIL staged protocol definitions differ" >&2
+    exit 1
+  fi
+  echo "ok   staged protocol compatibility"
+else
+  sh "$ROOT/scripts/check-proto-compat.sh" >/dev/null
+  echo "ok   protocol compatibility (live checkouts)"
+fi
+
+# Release mode: staged revisions must match compatibility.json pins.
+if [ "$LAB_SOURCE_MODE" = "release" ] && [ -f "$ROOT/artifacts/build/STAGED_REVISIONS.json" ]; then
+  python3 - "$ROOT/artifacts/build/STAGED_REVISIONS.json" <<'PY'
+import json,sys
+data=json.load(open(sys.argv[1]))
+bad=[]
+for name, info in data.get("components", {}).items():
+    staged=info.get("staged")
+    pinned=info.get("pinned")
+    if not pinned:
+        bad.append(f"{name}: missing pin")
+    elif staged != pinned:
+        bad.append(f"{name}: staged={staged} pinned={pinned}")
+if bad:
+    print("FAIL staged revisions do not match pins:", "; ".join(bad), file=sys.stderr)
+    raise SystemExit(1)
+print("ok   staged revisions match compatibility pins")
+PY
+fi
+
+# Isolation probe must actually run. Missing clients must not pass.
+if ! ops sh -c 'command -v curl >/dev/null'; then
+  echo "FAIL ops image has no curl; cannot probe outbound connectivity" >&2
+  exit 1
+fi
+if ops curl -fsS --max-time 3 http://1.1.1.1 >/dev/null 2>&1; then
   echo "FAIL containers can reach the public internet via HTTP" >&2
   exit 1
 fi
@@ -32,8 +73,12 @@ echo "$health" | grep -q '"status":"healthy"' || {
 }
 echo "ok   runner /health"
 
-curl -fsS --max-time 5 http://127.0.0.1:5173/ >/dev/null
-echo "ok   ui"
+auth_health=$(curl -fsS --max-time 5 http://127.0.0.1:5173/api/health || true)
+echo "$auth_health" | grep -q '"ok":true\|"ok": true' || {
+  echo "FAIL auth health: $auth_health" >&2
+  exit 1
+}
+echo "ok   auth health"
 
 login=$(curl -fsS --max-time 5 -X POST http://127.0.0.1:5173/api/auth/login \
   -H 'content-type: application/json' \
@@ -51,13 +96,22 @@ echo "$status" | grep -q 'LOCAL' || { echo "FAIL environment is not LOCAL: $stat
 echo "ok   runner reports PAPER LOCAL"
 
 # Trading must remain disabled for read-only verify.
-if echo "$status" | grep -q '"enabled": true'; then
-  echo "FAIL trading is enabled; read-only verify requires disabled trading" >&2
+case "$status" in
+  *'"enabled": true'*|*'\"enabled\": true'*)
+    echo "FAIL trading is enabled; read-only verify requires disabled trading" >&2
+    exit 1
+    ;;
+esac
+# grpcurl JSON may use enabled: true without quotes around true
+if echo "$status" | python3 -c 'import json,sys; d=json.load(sys.stdin); raise SystemExit(0 if d.get("enabled") is False else 1)' 2>/dev/null; then
+  echo "ok   trading disabled"
+elif echo "$status" | grep -Eq '"enabled"[[:space:]]*:[[:space:]]*false'; then
+  echo "ok   trading disabled"
+else
+  echo "FAIL could not confirm trading disabled from status: $status" >&2
   exit 1
 fi
-echo "ok   trading disabled"
 
-# Market-data connectivity without mutating orders.
 balances=$(ops curl -fsS --max-time 5 http://k-paper:19999/balances)
 echo "$balances" | grep -q USDT || { echo "FAIL paper balances" >&2; exit 1; }
 echo "ok   paper balances reachable"
@@ -66,8 +120,7 @@ info=$(ops curl -fsS --max-time 5 http://k-paper:19999/exchange_info)
 echo "$info" | grep -q 'BTC-USDT' || { echo "FAIL exchange info" >&2; exit 1; }
 echo "ok   paper exchange info"
 
-# Intended host exposure: only loopback operator ports (best-effort check via compose config).
-ports=$(compose config --format json 2>/dev/null | python3 -c '
+ports=$(compose config --format json | python3 -c '
 import json,sys
 cfg=json.load(sys.stdin)
 bad=[]
@@ -79,11 +132,8 @@ for name,svc in cfg.get("services",{}).items():
       bad.append("%s:%s:%s" % (name, host or "*", published))
 if bad:
   print(" ".join(bad))
-' || true)
-if [ -n "${ports:-}" ]; then
-  echo "FAIL non-loopback published ports: $ports" >&2
-  exit 1
-fi
+  raise SystemExit(1)
+')
 echo "ok   published ports appear loopback-bound in compose config"
 
 echo "verify: passed (read-only)"

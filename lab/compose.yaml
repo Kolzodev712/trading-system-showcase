@@ -38,7 +38,8 @@ services:
       context: .
       dockerfile: docker/kpaper.Dockerfile
       additional_contexts:
-        kpaper: ${K_PAPER_DIR:-../../k-paper}
+        # Prefer staged pinned tree from `make build` / stage-sources.sh.
+        kpaper: ./artifacts/build/k-paper
     restart: unless-stopped
     networks: [showcase]
     environment:
@@ -105,7 +106,7 @@ services:
       dockerfile: docker/ui.Dockerfile
       target: auth
       additional_contexts:
-        ui: ${UI_DIR:-../../trading-system-ui}
+        ui: ./artifacts/build/trading-system-ui
     restart: unless-stopped
     # The existing auth server binds 127.0.0.1. Share the UI network namespace
     # so nginx can proxy to that loopback without changing the UI repository.
@@ -129,7 +130,7 @@ services:
       dockerfile: docker/ui.Dockerfile
       target: web
       additional_contexts:
-        ui: ${UI_DIR:-../../trading-system-ui}
+        ui: ./artifacts/build/trading-system-ui
     restart: unless-stopped
     networks: [showcase]
     depends_on:
@@ -147,7 +148,7 @@ services:
     restart: unless-stopped
     networks: [showcase]
     volumes:
-      - ${UI_DIR:-../../trading-system-ui}/proto:/proto:ro
+      - ./artifacts/build/trading-system-ui/proto:/proto:ro
     depends_on:
       k-paper:
         condition: service_healthy

@@ -15,7 +15,7 @@ RUN cargo build --locked --release -p runner --bin runner
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates libssl3 curl \
+    ca-certificates libssl3 curl python3 \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 appuser \
     && mkdir -p /app/config /app/runtime-data \

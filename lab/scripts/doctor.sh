@@ -17,6 +17,7 @@ docker info >/dev/null 2>&1 && ok "docker daemon" || bad "docker daemon is not r
 docker compose version >/dev/null 2>&1 && ok "docker compose" || bad "docker compose is not installed"
 command -v git >/dev/null 2>&1 && ok "git" || bad "git is not installed"
 command -v python3 >/dev/null 2>&1 && ok "python3" || bad "python3 is not installed"
+[ -f "$ROOT/scripts/validate-config.py" ] && ok "validate-config.py" || bad "validate-config.py missing"
 
 for pair in \
   "TRADING_SYSTEM_DIR:$TRADING_SYSTEM_DIR" \
@@ -43,12 +44,29 @@ done
 [ -f "$ROOT/compatibility.json" ] && ok "compatibility.json" || bad "compatibility.json"
 
 if [ "$LAB_SOURCE_MODE" = "release" ] && [ -f "$ROOT/compatibility.json" ]; then
-  ref=$(python3 -c 'import json; print(json.load(open("'"$ROOT/compatibility.json"'"))["components"]["trading_system"]["ref"])')
-  if git -C "$TRADING_SYSTEM_DIR" cat-file -e "$ref^{commit}" 2>/dev/null; then
-    ok "pinned trading_system revision present ($ref)"
-  else
-    bad "pinned trading_system revision missing ($ref); run scripts/checkout-pinned.sh or set LAB_SOURCE_MODE=dev"
-  fi
+  python3 - "$ROOT/compatibility.json" "$TRADING_SYSTEM_DIR" "$K_PAPER_DIR" "$UI_DIR" <<'PY' || fail=1
+import json, subprocess, sys
+compat = json.load(open(sys.argv[1]))
+mapping = {
+    "trading_system": sys.argv[2],
+    "k-paper": sys.argv[3],
+    "trading-system-ui": sys.argv[4],
+}
+rc = 0
+for name, path in mapping.items():
+    ref = compat["components"][name]["ref"]
+    try:
+        subprocess.check_call(
+            ["git", "-C", path, "cat-file", "-e", f"{ref}^{{commit}}"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        print(f"  ok   pinned {name} revision present ({ref})")
+    except subprocess.CalledProcessError:
+        print(f"  FAIL pinned {name} revision missing ({ref}); run scripts/checkout-pinned.sh or LAB_SOURCE_MODE=dev")
+        rc = 1
+sys.exit(rc)
+PY
 fi
 
 if sh "$ROOT/scripts/validate-config.sh" "$ROOT/configurations/runner/bot.json" >/dev/null; then
@@ -70,6 +88,15 @@ if [ -f "$ROOT/.env" ]; then
   ok ".env present"
 else
   note "copy .env.example to .env before make build"
+fi
+
+# Compose must reference staged build contexts (not live sibling defaults) for release builds.
+if grep -q 'artifacts/build/k-paper' "$ROOT/compose.yaml" \
+  && grep -q 'artifacts/build/trading-system-ui' "$ROOT/compose.yaml" \
+  && grep -q 'artifacts/build/trading_system' "$ROOT/compose.yaml"; then
+  ok "compose uses staged build contexts"
+else
+  bad "compose must use ./artifacts/build/* contexts for all components"
 fi
 
 compose config >/dev/null && ok "compose.yaml" || bad "compose.yaml"

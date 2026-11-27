@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM alpine:3.20
-RUN apk add --no-cache curl jq bash ca-certificates \
+RUN apk add --no-cache curl jq bash ca-certificates python3 \
+
     && arch="$(apk --print-arch)" \
     && case "$arch" in \
          x86_64) target=linux_x86_64 ;; \
