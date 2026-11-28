@@ -5,3 +5,6 @@
 *.webp
 !screenshots/README.md
 !screenshots/*.png
+
+# Local outreach drafts (not for public commit unless approved)
+.cursor/community/outreach/

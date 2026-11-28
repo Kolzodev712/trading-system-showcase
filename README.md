@@ -115,11 +115,11 @@ Recording notes: [demonstrations/video.md](demonstrations/video.md). Overview: [
 
 ## Contributing
 
-Issues and doc fixes welcome on this repo. Code changes belong in the implementation repositories; update `lab/compatibility.json` pins when cutting a coordinated demo release.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the ecosystem [ROADMAP.md](ROADMAP.md). Issues and doc fixes welcome here; implementation PRs usually belong in the component repositories. Update `lab/compatibility.json` when cutting a coordinated demo release.
 
 ## Professional services
 
-T.L.P. Arc Entertainment Ltd. may offer integration review, custom venue adapters, and operator hardening beyond the public lab — contact via repository maintainer channels. The public `lab/` remains the supported self-serve onboarding path.
+T.L.P. Arc Entertainment Ltd. may offer integration review, custom venue adapters, and operator hardening beyond the public lab — contact via repository maintainer channels. The public `lab/` remains the supported self-serve onboarding path. No production/mainnet qualification is implied.
 
 ---
 
