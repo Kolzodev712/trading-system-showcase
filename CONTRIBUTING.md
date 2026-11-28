@@ -33,9 +33,10 @@ State which docs/scripts changed, how you verified them, and whether component p
 
 ## Reporting problems
 
-- Lab / docs issues: this repository’s Issues.
-- Component bugs: the owning implementation repository.
-- Security: [SECURITY.md](SECURITY.md).
+- Lab / docs issues: this repository’s Issues. Open contributions: https://github.com/Kolzodev712/trading-system-showcase/labels/good%20first%20issue
+- Component bugs: the owning implementation repository (see issue template contact links).
+- Security: [SECURITY.md](SECURITY.md) — GitHub private vulnerability reporting.
+- Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## License
 

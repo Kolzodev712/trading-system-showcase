@@ -115,7 +115,9 @@ Recording notes: [demonstrations/video.md](demonstrations/video.md). Overview: [
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the ecosystem [ROADMAP.md](ROADMAP.md). Issues and doc fixes welcome here; implementation PRs usually belong in the component repositories. Update `lab/compatibility.json` when cutting a coordinated demo release.
+**Start here for ecosystem contributions:** [CONTRIBUTING.md](CONTRIBUTING.md) · [ROADMAP.md](ROADMAP.md) · [good first issues](https://github.com/Kolzodev712/trading-system-showcase/labels/good%20first%20issue) · [Discussions](https://github.com/Kolzodev712/trading-system-showcase/discussions)
+
+Component work belongs in [trading_system](https://github.com/Kolzodev712/trading_system), [k-paper](https://github.com/Kolzodev712/k-paper), or [trading-system-ui](https://github.com/Kolzodev712/trading-system-ui) — each README links its contribution guide and open issues. Update `lab/compatibility.json` when cutting a coordinated demo release. Security: [SECURITY.md](SECURITY.md). Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Professional services
 

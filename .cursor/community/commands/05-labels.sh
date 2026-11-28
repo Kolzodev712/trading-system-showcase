@@ -19,6 +19,7 @@ create_label() {
 for repo in "${REPOS[@]}"; do
   echo "== $repo =="
   create_label "$repo" "testing" "BFD4F2" "Verification and test coverage"
+  create_label "$repo" "accessibility" "5319E7" "Accessibility improvements"
   create_label "$repo" "needs-design" "D4C5F9" "Requires architectural discussion"
   create_label "$repo" "needs-reproduction" "FEF2C0" "Insufficient evidence to establish a defect"
   create_label "$repo" "difficulty: easy" "C2E0C6" "Beginner-friendly scope"
@@ -27,6 +28,12 @@ for repo in "${REPOS[@]}"; do
   create_label "$repo" "priority: high" "B60205" "High priority"
   create_label "$repo" "priority: medium" "FBCA04" "Medium priority"
   create_label "$repo" "priority: low" "0E8A16" "Low priority"
+  # Ensure contribution defaults exist (idempotent create-or-edit)
+  create_label "$repo" "good first issue" "7057ff" "Good for newcomers"
+  create_label "$repo" "help wanted" "008672" "Extra attention is needed"
+  create_label "$repo" "documentation" "0075ca" "Improvements or additions to documentation"
+  create_label "$repo" "bug" "d73a4a" "Something isn't working"
+  create_label "$repo" "enhancement" "a2eeef" "New feature or request"
 done
 
-echo "Standard labels (bug, enhancement, documentation, good first issue, help wanted) already exist on GitHub defaults."
+echo "Labels applied (create-or-edit) across all four repositories."

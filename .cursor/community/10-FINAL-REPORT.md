@@ -1,9 +1,9 @@
 # Community & adoption preparation — final report
 
 **Date:** 2026-11-28  
-**Status:** Local changes prepared. **No commit, push, remote settings, issues, or external posts** until owner approval.
+**Status:** Community preparation committed and pushed. Activation (descriptions, labels, issues, Discussions) proceeds under the Final Community Activation brief.
 
-## 1. Changes implemented locally (uncommitted)
+## 1. Changes shipped (committed on public remotes)
 
 ### trading_system
 - `CONTRIBUTING.md` — research public; contribution policy; verification commands
@@ -27,69 +27,54 @@
 - `README.md` — roadmap/contributing pointers
 - `.cursor/community/**` — assessment, drafts, commands; `outreach/` gitignored
 
-## 2. Proposed descriptions & topics
+## 2. Discoverability (activation)
 
-See `.cursor/community/commands/01-github-discoverability.sh` (exact `gh repo edit` commands).  
-**Topic accuracy:** `backtesting` OK (research_cli); others match implemented surfaces. k-paper description should replace weak “Paper exchange integration”.
+Commands: `.cursor/community/commands/01-github-discoverability.sh`  
+**Topic accuracy:** `backtesting` OK (research_cli); others match implemented surfaces.
 
 **Profile pins (manual UI):** trading_system, k-paper, trading-system-ui, trading-system-showcase, company-ai-poc, cursor-hub.
 
-## 3. Proposed labels
+## 3. Labels
 
-See `.cursor/community/commands/05-labels.sh`.
+Commands: `.cursor/community/commands/05-labels.sh` (idempotent create-or-edit).
 
-## 4. Draft contribution issues (15)
+## 4. Contribution issues
 
 Index: `.cursor/community/drafts/issues/INDEX.md`  
-Bodies: KP-1…KP-5, TS-1…TS-4, UI-1…UI-3, SC-1…SC-3  
-**Not published.**
+Initial publish set (activation): KP-1, KP-2, KP-4, TS-1, TS-3, TS-4, UI-3, SC-1.  
+Held as unpublished / design: KP-3, KP-5, TS-2, UI-1, UI-2, SC-2, SC-3.
 
-## 5. Discussions welcome draft
+## 5. Discussions
 
-`.cursor/community/drafts/discussions-welcome.md`  
-Enable Discussions on showcase only: `commands/07-enable-discussions.sh`.
+Showcase Discussions hub; welcome post from `drafts/discussions-welcome.md`.
 
 ## 6. Ecosystem roadmap
 
-`ROADMAP.md` (tracked, uncommitted).
+`ROADMAP.md` — update with published issue URLs after activation.
 
 ## 7. Outreach drafts (local only)
 
 `.cursor/community/outreach/` (gitignored): descriptions, announcements, TWiR/Up-for-Grabs drafts, article outlines.
 
-## 8. Exact remote commands (approval required)
+## 8. Historical note
 
-```bash
-# Discoverability
-bash .cursor/community/commands/01-github-discoverability.sh
+Earlier sections of this report described the same content as **local / uncommitted** pending owner approval. That gate is closed: the community files above are on the public default branches. Treat this file as the activation ledger, not a pre-push checklist.
 
-# Labels (all four repos)
-bash .cursor/community/commands/05-labels.sh
-
-# Discussions: use GitHub settings UI for showcase
-bash .cursor/community/commands/07-enable-discussions.sh
-```
-
-Then: commit/push local trees → create issues from drafts → optional TWiR (max 2 issues).
-
-## 9. Verification
+## 9. Verification posture
 
 | Check | Result |
 |-------|--------|
-| Phase 0 metadata via `gh` | PASS (empty descriptions/topics; no templates remotely yet) |
-| Stale research-export CONTRIBUTING claim | Fixed locally |
-| Relative README cross-links (TS/UI/k-paper) | Fixed to absolute GitHub URLs |
-| Issue template YAML present in all four | PASS (local) |
+| Community templates on remotes | PASS (pushed) |
+| Stale research-export CONTRIBUTING claim | Fixed |
+| Relative README cross-links (TS/UI/k-paper) | Absolute GitHub URLs |
 | No fabricated stats/testimonials | PASS |
 | No trading architecture changes | PASS |
 | No GitHub Actions added | PASS |
 | Outreach not in tracked public paths | PASS (`outreach/` gitignored) |
-| Contributor tasks not implemented | PASS (drafts only) |
+| Contributor tasks not implemented by maintainers as part of activation | PASS |
 
-## 10. Remaining owner decisions
+## 10. Remaining owner actions (external)
 
-1. Approve commit + push of local community files.
-2. Approve running discoverability + label scripts.
-3. Approve enabling Discussions + welcome post.
-4. Approve which draft issues to publish (recommend KP-1, KP-2, TS-1, SC-1 first).
-5. Approve any external announcement / TWiR submission after issue URLs exist.
+1. Pin repositories on the GitHub profile UI.
+2. Record / upload demonstration video if desired.
+3. Publish LinkedIn / Show HN / TWiR / community posts from outreach drafts (after issue URLs filled in).
